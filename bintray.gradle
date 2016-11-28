@@ -1,0 +1,193 @@
+File localRootPropertyFile = new File(project.rootDir, "bintray_local_properties.gradle")
+if(localRootPropertyFile.exists()) {
+  apply from: localRootPropertyFile.absolutePath
+}
+
+File rootPropertyFile = new File(project.rootDir, "bintray_properties.gradle")
+if(rootPropertyFile.exists()) {
+  apply from: rootPropertyFile.absolutePath
+}
+
+File localPropertyFile = new File(project.projectDir, "bintray_local_properties.gradle")
+if(localPropertyFile.exists()) {
+  apply from: localPropertyFile.absolutePath
+}
+
+File propertyFile = new File(project.projectDir, "bintray_properties.gradle")
+if(propertyFile.exists()) {
+  apply from: propertyFile.absolutePath
+}
+
+project.ext.propertyMissingError = { name ->
+  "You must define $name in bintray_properties.gradle or bintray_local_properties.gradle as project.ext.$name = '<value>' or from the command line as ./gradlew <tasks...> -P$name=<value>"
+}
+
+if(!project.hasProperty('BINTRAY_USER')) throw new IllegalStateException(project.propertyMissingError('BINTRAY_USER'))
+if(!project.hasProperty('BINTRAY_KEY')) throw new IllegalStateException(project.propertyMissingError('BINTRAY_KEY'))
+if(!project.hasProperty('ARTIFACT_GROUP')) throw new IllegalStateException(project.propertyMissingError('ARTIFACT_GROUP'))
+if(!project.hasProperty('ARTIFACT_VERSION')) throw new IllegalStateException(project.propertyMissingError('ARTIFACT_VERSION'))
+if(!project.hasProperty('BINTRAY_REPO')) throw new IllegalStateException(project.propertyMissingError('BINTRAY_REPO'))
+if(!project.hasProperty('BINTRAY_PACKAGE')) throw new IllegalStateException(project.propertyMissingError('BINTRAY_PACKAGE'))
+
+if(!project.hasProperty('ARTIFACT_NAME')) project.ext.ARTIFACT_NAME = project.BINTRAY_PACKAGE
+
+if(!project.hasProperty('BINTRAY_PUBLISH')) project.ext.BINTRAY_PUBLISH = true
+if(!project.hasProperty('BINTRAY_OVERRIDE_VERSION')) project.ext.BINTRAY_OVERRIDE_VERSION = false
+if(!project.hasProperty('BINTRAY_DRY_RUN')) project.ext.BINTRAY_DRY_RUN = false
+if(!project.hasProperty('DESCRIPTION')) project.ext.DESCRIPTION = ''
+if(!project.hasProperty('LICENSE')) project.ext.LICENSE = ''
+if(!project.hasProperty('LICENSE_URL')) project.ext.LICENSE_URL = ''
+if(!project.hasProperty('VCS_URL')) project.ext.VCS_URL = ''
+
+group = project.ARTIFACT_GROUP
+version = project.ARTIFACT_VERSION
+
+boolean isAndroidProject = project.plugins.hasPlugin('com.android.application') || project.plugins.hasPlugin('com.android.library')
+
+if(isAndroidProject) {
+  apply plugin: 'com.github.dcendents.android-maven'
+}
+else {
+  apply plugin: 'maven'
+}
+
+apply plugin: 'com.jfrog.bintray'
+rootProject.apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'maven-publish'
+
+bintray {
+  user = project.BINTRAY_USER
+  key = project.BINTRAY_KEY
+  configurations = ['archives']
+  publish = project.BINTRAY_PUBLISH
+  override = project.BINTRAY_OVERRIDE_VERSION
+  dryRun = project.BINTRAY_DRY_RUN
+  pkg {
+    repo = project.BINTRAY_REPO
+    name = project.BINTRAY_PACKAGE
+    desc = project.DESCRIPTION
+    if(project.hasProperty('BINTRAY_ORG')) userOrg = project.BINTRAY_ORG
+    licenses = [project.LICENSE]
+    vcsUrl = project.VCS_URL
+    publicDownloadNumbers = true
+    version {
+      name = project.ARTIFACT_VERSION
+      released  = new Date()
+      vcsTag = project.ARTIFACT_VERSION
+    }
+  }
+}
+
+artifactory {
+  contextUrl = 'https://oss.jfrog.org/artifactory'
+  publish {
+    repository {
+      repoKey = 'oss-snapshot-local'
+      username = project.BINTRAY_USER
+      password = project.BINTRAY_KEY
+      maven = true
+    }
+
+    defaults {
+      publishConfigs('archives')
+    }
+  }
+}
+
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      groupId project.ARTIFACT_GROUP
+      artifactId project.ARTIFACT_NAME
+      version project.ARTIFACT_VERSION
+    }
+  }
+}
+
+install {
+  repositories.mavenInstaller {
+    pom.groupId = project.ARTIFACT_GROUP
+    pom.artifactId = project.ARTIFACT_NAME
+    pom.version = project.ARTIFACT_VERSION
+
+    pom.project {
+      name project.ARTIFACT_NAME
+      packaging 'jar'
+      description project.DESCRIPTION
+      url project.VCS_URL
+
+      licenses {
+        license {
+          name project.LICENSE
+          url project.LICENSE_URL
+        }
+      }
+    }
+  }
+}
+
+if(!project.hasProperty('USE_DOKKA')) project.ext.USE_DOKKA = false
+
+if (isAndroidProject) {
+  if(project.USE_DOKKA) {
+    task androidJavadocsJar(type: Jar) {
+      classifier = 'javadoc'
+      from dokka
+    }
+  }
+  else {
+    task androidJavadocs(type: Javadoc) {
+      source = android.sourceSets.main.java.source
+      classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+      failOnError false
+    }
+
+    task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
+      classifier = 'javadoc'
+      from androidJavadocs.destinationDir
+    }
+  }
+
+  task androidSourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.source
+  }
+}
+else {
+  task sourcesJar(type: Jar, dependsOn:classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+  }
+
+  if(project.USE_DOKKA) {
+    task javadocJar(type: Jar, dependsOn:dokka) {
+      classifier = 'javadoc'
+      from dokka
+    }
+  }
+  else {
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+      classifier = 'javadoc'
+      from javadoc.destinationDir
+    }
+  }
+}
+
+if (JavaVersion.current().isJava8Compatible()) {
+  allprojects {
+    tasks.withType(Javadoc) {
+      options.addStringOption('Xdoclint:none', '-quiet')
+    }
+  }
+}
+
+artifacts {
+  if (isAndroidProject) {
+    archives androidSourcesJar
+    archives androidJavadocsJar
+  } else {
+    archives sourcesJar
+    archives javadocJar
+  }
+}
