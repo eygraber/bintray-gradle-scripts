@@ -42,6 +42,7 @@ The following properties are only necessary if the bintray repo and package have
 * VCS_URL - a URL pointing to version control (usually just the github root of the project), will be empty by default
 
 There are 3 ways these properties are set (and in the following order):
+
 1. Through command line properties (`./gradlew <tasks...> -PBINTRAY_USER=<user>`
 2. In a `bintray_local_properties.gradle` file at the root of your project and/or module
 3. In a `bintray_properties.gradle` file at the root of your project and/or module
