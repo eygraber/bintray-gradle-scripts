@@ -1,20 +1,32 @@
 # Usage
-1. Add `classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.4.9'` to your root project's buildscript dependencies
-2. Add `apply from: "https://raw.githubusercontent.com/eygraber/bintray-gradle-scripts/master/bintray.gradle"` to the bottom of the `build.gradle` of each module you want to deploy to bintray
-3. Either in your root project's buildscript depedencies, or in all of your deployable modules' buildscript dependencies, add:
+1. Add `apply from: "https://raw.githubusercontent.com/eygraber/bintray-gradle-scripts/master/bintray.gradle"` to the bottom of the `build.gradle` of each module you want to deploy to bintray
+2. Either in your root project's buildscript depedencies, or in all of your deployable modules' buildscript dependencies, add:
 ```
 classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
 classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
+classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.4.10'
 ```
 
 # Uploading artifacts
 Assuming we want to upload artifacts from a module called library
 
 ## Snapshots
-`./gradlew library:clean library:build library:artifactoryPublish` 
+`./gradlew library:artifactoryPublish` 
 
 ## Releases
-`./gradlew library:clean library:build library:bintrayUpload`
+`./gradlew library:bintrayUpload`
+
+## Convenience
+
+Two tasks are added; `deployToBintraySnapshot` and `deployToBintray`. Running these are the equivalent of:
+
+```
+// deployToBintraySnapshot
+./gradlew library:clean library:build library:artifactoryPublish
+
+// deployToBintray
+./gradlew library:clean library:build library:bintrayUpload
+```
 
 # Properties
 The following properties are required to be set on the project for the module that is being deployed
