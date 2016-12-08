@@ -1,6 +1,6 @@
 boolean isBintrayTaskRunning = project.gradle.startParameter.taskNames.any {
   String taskName = it.split(':').last()
-  taskName == 'artifactoryPublish' || taskName == 'bintrayUpload'
+  taskName == 'artifactoryPublish' || taskName == 'bintrayUpload' || taskName == 'deployToBintray' || taskName == 'deployToBintraySnapshot'
 }
 
 if(isBintrayTaskRunning) {
@@ -58,7 +58,6 @@ if(isBintrayTaskRunning) {
   }
 
   apply plugin: 'com.jfrog.bintray'
-  rootProject.apply plugin: 'com.jfrog.artifactory'
   apply plugin: 'com.jfrog.artifactory'
   apply plugin: 'maven-publish'
 
@@ -196,5 +195,19 @@ if(isBintrayTaskRunning) {
       archives sourcesJar
       archives javadocJar
     }
+  }
+
+  task deployToBintray(
+    dependsOn: ['clean', 'build', 'bintrayUpload' ]
+  )
+
+  task deployToBintraySnapshot(
+    dependsOn: ['clean', 'build', 'artifactoryPublish' ]
+  )
+
+  afterEvaluate {
+    build.shouldRunAfter clean
+    bintrayUpload.shouldRunAfter build
+    artifactoryPublish.shouldRunAfter build
   }
 }
