@@ -4,16 +4,6 @@ boolean isBintrayTaskRunning = project.gradle.startParameter.taskNames.any {
 }
 
 if(isBintrayTaskRunning) {
-  File localRootPropertyFile = new File(project.rootDir, "bintray_local_properties.gradle")
-  if(localRootPropertyFile.exists()) {
-    apply from: localRootPropertyFile.absolutePath
-  }
-
-  File rootPropertyFile = new File(project.rootDir, "bintray_properties.gradle")
-  if(rootPropertyFile.exists()) {
-    apply from: rootPropertyFile.absolutePath
-  }
-
   File localPropertyFile = new File(project.projectDir, "bintray_local_properties.gradle")
   if(localPropertyFile.exists()) {
     apply from: localPropertyFile.absolutePath
@@ -22,6 +12,16 @@ if(isBintrayTaskRunning) {
   File propertyFile = new File(project.projectDir, "bintray_properties.gradle")
   if(propertyFile.exists()) {
     apply from: propertyFile.absolutePath
+  }
+  
+  File localRootPropertyFile = new File(project.rootDir, "bintray_local_properties.gradle")
+  if(localRootPropertyFile.exists()) {
+    apply from: localRootPropertyFile.absolutePath
+  }
+
+  File rootPropertyFile = new File(project.rootDir, "bintray_properties.gradle")
+  if(rootPropertyFile.exists()) {
+    apply from: rootPropertyFile.absolutePath
   }
 
   project.ext.propertyMissingError = { name ->
