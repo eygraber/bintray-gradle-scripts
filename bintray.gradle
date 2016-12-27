@@ -206,8 +206,8 @@ if(isBintrayTaskRunning) {
   )
 
   afterEvaluate {
-    build.shouldRunAfter clean
-    bintrayUpload.shouldRunAfter build
-    artifactoryPublish.shouldRunAfter build
+    build.mustRunAfter clean
+    bintrayUpload.mustRunAfter build
+    artifactoryPublish.mustRunAfter build
   }
 }
