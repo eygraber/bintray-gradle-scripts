@@ -4,7 +4,7 @@
 ```
 classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
 classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
-classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.4.10'
+classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.4.12'
 ```
 
 See [example](#example)
