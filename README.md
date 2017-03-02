@@ -51,6 +51,7 @@ The following properties are optional, and will have the default value noted
 * BINTRAY_OVERRIDE_VERSION - whether the artifacts will override an existing artifact with the same version (false by default)
 * BINTRAY_DRY_RUN - whether the upload will actually occur or only run through the steps up until the upload (false by defualt)
 * DESCRIPTION - will be empty by default
+* USE_DOKKA - whether the javadoc tasks will use dokka (false by default)
 
 The following properties are only necessary if the bintray repo and package have not been set up yet
 * LICENSE - will be empty by default
